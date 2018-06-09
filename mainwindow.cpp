@@ -1342,7 +1342,7 @@ bool MainWindow::saveAction(const QPixmap &pix)
     if (copyToClipboard) {
         Q_ASSERT(!screenShotPix.isNull());
         QClipboard* cb = qApp->clipboard();
-        cb->setPixmap(screenShotPix, QClipboard::Clipboard);
+        cb->setPixmap(screenShotPix, QClipboard::Selection);
     }
 
     return true;
