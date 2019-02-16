@@ -4,7 +4,7 @@
     <message>
         <location filename="../mainwindow.cpp" line="641"/>
         <source>select-area</source>
-        <translation>選取範圍</translation>
+        <translation>select-area</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="986"/>
@@ -40,7 +40,7 @@
     <message>
         <location filename="../mainwindow.cpp" line="1360"/>
         <source>Save failed. Please save it in your home directory.</source>
-        <translation type="unfinished"/>
+        <translation>儲存失敗。請將其儲存於您的家目錄中。</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="1384"/>
