@@ -45,20 +45,21 @@
 
 DWIDGET_USE_NAMESPACE
 
-namespace {
+namespace
+{
 const int RECORD_MIN_SIZE = 10;
 const int SPACING = 10;
 const int TOOLBAR_Y_SPACING = 8;
 const int CURSOR_WIDTH = 8;
 const int CURSOR_HEIGHT = 18;
-const int INDICATOR_WIDTH =  59;
+const int INDICATOR_WIDTH = 59;
 const qreal RESIZEPOINT_WIDTH = 15;
-}
+} // namespace
 
 MainWindow::MainWindow(QWidget *parent)
     : QLabel(parent)
 {
-//     startScreenshot();
+    //     startScreenshot();
 }
 
 MainWindow::~MainWindow()
@@ -73,7 +74,7 @@ void MainWindow::initOriginUI()
     QPoint curPos = this->cursor().pos();
 
     m_swUtil = DScreenWindowsUtil::instance(curPos);
-    m_screenNum =  m_swUtil->getScreenNum();
+    m_screenNum = m_swUtil->getScreenNum();
     m_backgroundRect = m_swUtil->backgroundRect();
     this->move(m_backgroundRect.x(), m_backgroundRect.y());
     this->setFixedSize(m_backgroundRect.size());
@@ -94,9 +95,9 @@ void MainWindow::initOriginUI()
     m_recordWidth = 0;
     m_recordHeight = 0;
 
-    qreal ration =  this->devicePixelRatioF();
+    qreal ration = this->devicePixelRatioF();
     QIcon icon(":/image/icons/resize_handle_big.svg");
-    m_resizeBigPix = icon.pixmap(QSize(RESIZEPOINT_WIDTH,RESIZEPOINT_WIDTH));
+    m_resizeBigPix = icon.pixmap(QSize(RESIZEPOINT_WIDTH, RESIZEPOINT_WIDTH));
     m_resizeBigPix.setDevicePixelRatio(ration);
 
     m_dragRecordX = -1;
@@ -108,24 +109,27 @@ void MainWindow::initOriginUI()
     m_selectAreaName = "";
 
     m_isShapesWidgetExist = false;
-
 }
 
 void MainWindow::initSecondUI()
 {
-    if (m_screenNum == 0) {
+    if (m_screenNum == 0)
+    {
         m_windowRects = m_swUtil->windowsRect();
         m_windowNames = m_swUtil->windowsName();
     }
-    m_configSettings =  ConfigSettings::instance();
+    m_configSettings = ConfigSettings::instance();
     m_toolBar = new ToolBar(this);
     m_toolBar->hide();
     m_menuController = new MenuController(this);
 
-    connect(m_toolBar, &ToolBar::buttonChecked, this,  [=](QString shape){
-        if (m_isShapesWidgetExist && shape != "color") {
+    connect(m_toolBar, &ToolBar::buttonChecked, this, [=](QString shape) {
+        if (m_isShapesWidgetExist && shape != "color")
+        {
             m_shapesWidget->setCurrentShape(shape);
-        } else if (shape != "color") {
+        }
+        else if (shape != "color")
+        {
             initShapeWidget(shape);
             m_isShapesWidgetExist = true;
         }
@@ -155,206 +159,292 @@ void MainWindow::initDBusInterface()
 
 void MainWindow::initShortcut()
 {
-    QShortcut* rectSC = new QShortcut(QKeySequence("Alt+1"), this);
-    QShortcut* ovalSC = new QShortcut(QKeySequence("Alt+2"), this);
-    QShortcut* arrowSC = new QShortcut(QKeySequence("Alt+3"), this);
-    QShortcut* lineSC = new QShortcut(QKeySequence("Alt+4"), this);
-    QShortcut* textSC = new QShortcut(QKeySequence("Alt+5"), this);
-    QShortcut* colorSC = new QShortcut(QKeySequence("Alt+6"), this);
+    QShortcut *rectSC = new QShortcut(QKeySequence("Alt+1"), this);
+    QShortcut *ovalSC = new QShortcut(QKeySequence("Alt+2"), this);
+    QShortcut *arrowSC = new QShortcut(QKeySequence("Alt+3"), this);
+    QShortcut *lineSC = new QShortcut(QKeySequence("Alt+4"), this);
+    QShortcut *textSC = new QShortcut(QKeySequence("Alt+5"), this);
+    QShortcut *colorSC = new QShortcut(QKeySequence("Alt+6"), this);
 
-    connect(rectSC, &QShortcut::activated, this, [=]{
+    connect(rectSC, &QShortcut::activated, this, [=] {
         emit m_toolBar->shapePressed("rectangle");
     });
-    connect(ovalSC, &QShortcut::activated, this, [=]{
+    connect(ovalSC, &QShortcut::activated, this, [=] {
         emit m_toolBar->shapePressed("oval");
     });
-    connect(arrowSC, &QShortcut::activated, this, [=]{
+    connect(arrowSC, &QShortcut::activated, this, [=] {
         emit m_toolBar->shapePressed("arrow");
     });
-    connect(lineSC, &QShortcut::activated, this, [=]{
+    connect(lineSC, &QShortcut::activated, this, [=] {
         emit m_toolBar->shapePressed("line");
     });
-    connect(textSC, &QShortcut::activated, this, [=]{
+    connect(textSC, &QShortcut::activated, this, [=] {
         emit m_toolBar->shapePressed("text");
     });
-    connect(colorSC, &QShortcut::activated, this, [=]{
+    connect(colorSC, &QShortcut::activated, this, [=] {
         emit m_toolBar->shapePressed("color");
     });
 
-    if (isCommandExist("dman")) {
-        QShortcut* helpSC = new QShortcut(QKeySequence("F1"), this);
+    if (isCommandExist("dman"))
+    {
+        QShortcut *helpSC = new QShortcut(QKeySequence("F1"), this);
         helpSC->setAutoRepeat(false);
-        connect(helpSC,  SIGNAL(activated()), this, SLOT(onHelp()));
+        connect(helpSC, SIGNAL(activated()), this, SLOT(onHelp()));
     }
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *keyEvent)
 {
-    if (keyEvent->key() == Qt::Key_Escape ) {
-        if (m_isShapesWidgetExist) {
-            if (m_shapesWidget->textEditIsReadOnly()) {
+    if (keyEvent->key() == Qt::Key_Escape)
+    {
+        if (m_isShapesWidgetExist)
+        {
+            if (m_shapesWidget->textEditIsReadOnly())
+            {
                 return;
             }
         }
         qDebug() << "Key_Escape pressed: app quit!";
         exitApp();
-    } else if (keyEvent->modifiers() == (Qt::ShiftModifier | Qt::ControlModifier)) {
-        if (keyEvent->key() == Qt::Key_Question) {
+    }
+    else if (keyEvent->modifiers() == (Qt::ShiftModifier | Qt::ControlModifier))
+    {
+        if (keyEvent->key() == Qt::Key_Question)
+        {
             onViewShortcut();
         }
-    } else if (qApp->keyboardModifiers() & Qt::ControlModifier) {
-        if (keyEvent->key() == Qt::Key_Z) {
+    }
+    else if (qApp->keyboardModifiers() & Qt::ControlModifier)
+    {
+        if (keyEvent->key() == Qt::Key_Z)
+        {
             qDebug() << "SDGF: ctrl+z !!!";
             emit unDo();
         }
     }
 
     bool needRepaint = false;
-    if (m_isShapesWidgetExist) {
-        if (keyEvent->key() == Qt::Key_Escape) {
+    if (m_isShapesWidgetExist)
+    {
+        if (keyEvent->key() == Qt::Key_Escape)
+        {
             exitApp();
-            return  ;
+            return;
         }
 
-        if (keyEvent->key() == Qt::Key_Shift) {
-            m_isShiftPressed =  true;
+        if (keyEvent->key() == Qt::Key_Shift)
+        {
+            m_isShiftPressed = true;
             m_shapesWidget->setShiftKeyPressed(m_isShiftPressed);
         }
 
-        if (keyEvent->modifiers() == (Qt::ShiftModifier | Qt::ControlModifier)) {
-            if (keyEvent->key() == Qt::Key_Left) {
+        if (keyEvent->modifiers() == (Qt::ShiftModifier | Qt::ControlModifier))
+        {
+            if (keyEvent->key() == Qt::Key_Left)
+            {
                 m_shapesWidget->microAdjust("Ctrl+Shift+Left");
-            } else if (keyEvent->key() == Qt::Key_Right) {
+            }
+            else if (keyEvent->key() == Qt::Key_Right)
+            {
                 m_shapesWidget->microAdjust("Ctrl+Shift+Right");
-            } else if (keyEvent->key() == Qt::Key_Up) {
+            }
+            else if (keyEvent->key() == Qt::Key_Up)
+            {
                 m_shapesWidget->microAdjust("Ctrl+Shift+Up");
-            } else if (keyEvent->key() == Qt::Key_Down) {
+            }
+            else if (keyEvent->key() == Qt::Key_Down)
+            {
                 m_shapesWidget->microAdjust("Ctrl+Shift+Down");
             }
-        } else if (qApp->keyboardModifiers() & Qt::ControlModifier) {
-            if (keyEvent->key() == Qt::Key_Left) {
+        }
+        else if (qApp->keyboardModifiers() & Qt::ControlModifier)
+        {
+            if (keyEvent->key() == Qt::Key_Left)
+            {
                 m_shapesWidget->microAdjust("Ctrl+Left");
-            } else if (keyEvent->key() == Qt::Key_Right) {
+            }
+            else if (keyEvent->key() == Qt::Key_Right)
+            {
                 m_shapesWidget->microAdjust("Ctrl+Right");
-            } else if (keyEvent->key() == Qt::Key_Up) {
+            }
+            else if (keyEvent->key() == Qt::Key_Up)
+            {
                 m_shapesWidget->microAdjust("Ctrl+Up");
-            } else if (keyEvent->key() == Qt::Key_Down) {
+            }
+            else if (keyEvent->key() == Qt::Key_Down)
+            {
                 m_shapesWidget->microAdjust("Ctrl+Down");
-            } else if (keyEvent->key() == Qt::Key_C) {
+            }
+            else if (keyEvent->key() == Qt::Key_C)
+            {
                 ConfigSettings::instance()->setValue("save", "save_op", 3);
                 saveScreenshot();
-            } else if (keyEvent->key() == Qt::Key_S) {
+            }
+            else if (keyEvent->key() == Qt::Key_S)
+            {
                 expressSaveScreenshot();
             }
-        }  else {
-            if (keyEvent->key() == Qt::Key_Left) {
+        }
+        else
+        {
+            if (keyEvent->key() == Qt::Key_Left)
+            {
                 m_shapesWidget->microAdjust("Left");
-            } else if (keyEvent->key() == Qt::Key_Right) {
+            }
+            else if (keyEvent->key() == Qt::Key_Right)
+            {
                 m_shapesWidget->microAdjust("Right");
-            } else if (keyEvent->key() == Qt::Key_Up) {
+            }
+            else if (keyEvent->key() == Qt::Key_Up)
+            {
                 m_shapesWidget->microAdjust("Up");
-            } else if (keyEvent->key() == Qt::Key_Down) {
+            }
+            else if (keyEvent->key() == Qt::Key_Down)
+            {
                 m_shapesWidget->microAdjust("Down");
             }
         }
 
-        if (keyEvent->key() == Qt::Key_Delete || keyEvent->key() == Qt::Key_Backspace) {
-            emit  deleteShapes();
-        } else {
+        if (keyEvent->key() == Qt::Key_Delete || keyEvent->key() == Qt::Key_Backspace)
+        {
+            emit deleteShapes();
+        }
+        else
+        {
             qDebug() << "ShapeWidget Exist keyEvent:" << keyEvent->key();
         }
-        return  ;
+        return;
     }
 
-    if (m_mouseStatus == ShotMouseStatus::Normal) {
-        if (keyEvent->modifiers() == (Qt::ShiftModifier | Qt::ControlModifier)) {
+    if (m_mouseStatus == ShotMouseStatus::Normal)
+    {
+        if (keyEvent->modifiers() == (Qt::ShiftModifier | Qt::ControlModifier))
+        {
 
-            if (keyEvent->key() == Qt::Key_Left) {
+            if (keyEvent->key() == Qt::Key_Left)
+            {
                 m_recordX = std::max(0, m_recordX + 1);
                 m_recordWidth = std::max(std::min(m_recordWidth - 1,
-                                                  m_backgroundRect.width()), RECORD_MIN_SIZE);
-
-                needRepaint = true;
-            } else if (keyEvent->key() == Qt::Key_Right) {
-                m_recordWidth = std::max(std::min(m_recordWidth - 1,
-                                                  m_backgroundRect.width()), RECORD_MIN_SIZE);
-
-                needRepaint = true;
-            } else if (keyEvent->key() == Qt::Key_Up) {
-                m_recordY = std::max(0, m_recordY + 1);
-                m_recordHeight = std::max(std::min(m_recordHeight - 1,
-                                                   m_backgroundRect.height()), RECORD_MIN_SIZE);
-
-                needRepaint = true;
-            } else if (keyEvent->key() == Qt::Key_Down) {
-                m_recordHeight = std::max(std::min(m_recordHeight - 1,
-                                                   m_backgroundRect.height()), RECORD_MIN_SIZE);
+                                                  m_backgroundRect.width()),
+                                         RECORD_MIN_SIZE);
 
                 needRepaint = true;
             }
-        } else if (qApp->keyboardModifiers() & Qt::ControlModifier) {
-            if (keyEvent->key() == Qt::Key_S) {
+            else if (keyEvent->key() == Qt::Key_Right)
+            {
+                m_recordWidth = std::max(std::min(m_recordWidth - 1,
+                                                  m_backgroundRect.width()),
+                                         RECORD_MIN_SIZE);
+
+                needRepaint = true;
+            }
+            else if (keyEvent->key() == Qt::Key_Up)
+            {
+                m_recordY = std::max(0, m_recordY + 1);
+                m_recordHeight = std::max(std::min(m_recordHeight - 1,
+                                                   m_backgroundRect.height()),
+                                          RECORD_MIN_SIZE);
+
+                needRepaint = true;
+            }
+            else if (keyEvent->key() == Qt::Key_Down)
+            {
+                m_recordHeight = std::max(std::min(m_recordHeight - 1,
+                                                   m_backgroundRect.height()),
+                                          RECORD_MIN_SIZE);
+
+                needRepaint = true;
+            }
+        }
+        else if (qApp->keyboardModifiers() & Qt::ControlModifier)
+        {
+            if (keyEvent->key() == Qt::Key_S)
+            {
                 expressSaveScreenshot();
             }
 
-            if (keyEvent->key() == Qt::Key_C) {
+            if (keyEvent->key() == Qt::Key_C)
+            {
                 ConfigSettings::instance()->setValue("save", "save_op", 3);
                 saveScreenshot();
             }
 
-            if (keyEvent->key() == Qt::Key_Left) {
+            if (keyEvent->key() == Qt::Key_Left)
+            {
                 m_recordX = std::max(0, m_recordX - 1);
                 m_recordWidth = std::max(std::min(m_recordWidth + 1,
-                                                  m_backgroundRect.width()), RECORD_MIN_SIZE);
-
-                needRepaint = true;
-            } else if (keyEvent->key() == Qt::Key_Right) {
-                m_recordWidth = std::max(std::min(m_recordWidth + 1,
-                                                  m_backgroundRect.width()), RECORD_MIN_SIZE);
-
-                needRepaint = true;
-            } else if (keyEvent->key() == Qt::Key_Up) {
-                m_recordY = std::max(0, m_recordY - 1);
-                m_recordHeight = std::max(std::min(m_recordHeight + 1,
-                                                   m_backgroundRect.height()), RECORD_MIN_SIZE);
-
-                needRepaint = true;
-            } else if (keyEvent->key() == Qt::Key_Down) {
-                m_recordHeight = std::max(std::min(m_recordHeight + 1,
-                                                   m_backgroundRect.height()), RECORD_MIN_SIZE);
+                                                  m_backgroundRect.width()),
+                                         RECORD_MIN_SIZE);
 
                 needRepaint = true;
             }
-        } else {
-            if (keyEvent->key() == Qt::Key_Left) {
+            else if (keyEvent->key() == Qt::Key_Right)
+            {
+                m_recordWidth = std::max(std::min(m_recordWidth + 1,
+                                                  m_backgroundRect.width()),
+                                         RECORD_MIN_SIZE);
+
+                needRepaint = true;
+            }
+            else if (keyEvent->key() == Qt::Key_Up)
+            {
+                m_recordY = std::max(0, m_recordY - 1);
+                m_recordHeight = std::max(std::min(m_recordHeight + 1,
+                                                   m_backgroundRect.height()),
+                                          RECORD_MIN_SIZE);
+
+                needRepaint = true;
+            }
+            else if (keyEvent->key() == Qt::Key_Down)
+            {
+                m_recordHeight = std::max(std::min(m_recordHeight + 1,
+                                                   m_backgroundRect.height()),
+                                          RECORD_MIN_SIZE);
+
+                needRepaint = true;
+            }
+        }
+        else
+        {
+            if (keyEvent->key() == Qt::Key_Left)
+            {
                 m_recordX = std::max(0, m_recordX - 1);
 
                 needRepaint = true;
-            } else if (keyEvent->key() == Qt::Key_Right) {
+            }
+            else if (keyEvent->key() == Qt::Key_Right)
+            {
                 m_recordX = std::min(m_backgroundRect.width() - m_recordWidth,
                                      m_recordX + 1);
 
                 needRepaint = true;
-            } else if (keyEvent->key() == Qt::Key_Up) {
+            }
+            else if (keyEvent->key() == Qt::Key_Up)
+            {
                 m_recordY = std::max(0, m_recordY - 1);
 
                 needRepaint = true;
-            } else if (keyEvent->key() == Qt::Key_Down) {
+            }
+            else if (keyEvent->key() == Qt::Key_Down)
+            {
                 m_recordY = std::min(m_backgroundRect.height() -
-                                     m_recordHeight, m_recordY + 1);
+                                         m_recordHeight,
+                                     m_recordY + 1);
 
                 needRepaint = true;
             }
         }
 
-        if ( !m_needSaveScreenshot) {
+        if (!m_needSaveScreenshot)
+        {
             m_sizeTips->updateTips(QPoint(m_recordX, m_recordY),
                                    QString("%1X%2").arg(m_recordWidth).arg(m_recordHeight));
             updateToolBarPos();
         }
     }
 
-    if (needRepaint) {
+    if (needRepaint)
+    {
         update();
     }
 
@@ -370,21 +460,25 @@ void MainWindow::keyReleaseEvent(QKeyEvent *keyEvent)
     //        QProcess::startDetached("deepin-shortcut-viewer");
     //    }
 
-    if (m_isShapesWidgetExist) {
-        if (keyEvent->key() == Qt::Key_Shift) {
-            m_isShiftPressed =  false;
+    if (m_isShapesWidgetExist)
+    {
+        if (keyEvent->key() == Qt::Key_Shift)
+        {
+            m_isShiftPressed = false;
             m_shapesWidget->setShiftKeyPressed(m_isShiftPressed);
         }
     }
 
-    if (!keyEvent->isAutoRepeat()) {
-        if (keyEvent->key() == Qt::Key_Left || keyEvent->key()
-                == Qt::Key_Right || keyEvent->key() == Qt::Key_Up ||
-                keyEvent->key() == Qt::Key_Down) {
+    if (!keyEvent->isAutoRepeat())
+    {
+        if (keyEvent->key() == Qt::Key_Left || keyEvent->key() == Qt::Key_Right || keyEvent->key() == Qt::Key_Up ||
+            keyEvent->key() == Qt::Key_Down)
+        {
             needRepaint = true;
         }
     }
-    if (needRepaint) {
+    if (needRepaint)
+    {
         update();
     }
     QLabel::keyReleaseEvent(keyEvent);
@@ -392,22 +486,28 @@ void MainWindow::keyReleaseEvent(QKeyEvent *keyEvent)
 
 void MainWindow::mousePressEvent(QMouseEvent *ev)
 {
-    if (!m_isShapesWidgetExist) {
+    if (!m_isShapesWidgetExist)
+    {
         m_dragStartX = ev->x();
         m_dragStartY = ev->y();
 
-        if (ev->button() == Qt::RightButton) {
+        if (ev->button() == Qt::RightButton)
+        {
             m_moving = false;
-            if (!m_isFirstPressButton) {
+            if (!m_isFirstPressButton)
+            {
                 exitApp();
             }
 
             m_menuController->showMenu(QPoint(mapToGlobal(ev->pos())));
         }
 
-        if (!m_isFirstPressButton) {
+        if (!m_isFirstPressButton)
+        {
             m_isFirstPressButton = true;
-        } else if (ev->button() == Qt::LeftButton) {
+        }
+        else if (ev->button() == Qt::LeftButton)
+        {
             m_moving = true;
             m_dragAction = getDirection(ev);
 
@@ -433,19 +533,23 @@ void MainWindow::mouseReleaseEvent(QMouseEvent *ev)
 {
     bool needRepaint = false;
 
-    if (!m_isShapesWidgetExist) {
+    if (!m_isShapesWidgetExist)
+    {
         m_moving = false;
 
-        if (m_sizeTips->isVisible()) {
+        if (m_sizeTips->isVisible())
+        {
             m_sizeTips->updateTips(QPoint(m_recordX, m_recordY),
                                    QString("%1X%2").arg(m_recordWidth).arg(m_recordHeight));
         }
 
-        if (m_toolBar->isVisible()) {
+        if (m_toolBar->isVisible())
+        {
             updateToolBarPos();
         }
 
-        if (!m_isFirstReleaseButton) {
+        if (!m_isFirstReleaseButton)
+        {
             m_isFirstReleaseButton = true;
 
             m_mouseStatus = ShotMouseStatus::Normal;
@@ -456,31 +560,36 @@ void MainWindow::mouseReleaseEvent(QMouseEvent *ev)
             updateCursor(ev);
 
             // Record select area name with window name if just click (no drag).
-            if (!m_isFirstDrag) {
-                for (int i = 0; i < m_windowRects.length(); i++) {
+            if (!m_isFirstDrag)
+            {
+                for (int i = 0; i < m_windowRects.length(); i++)
+                {
                     int wx = m_windowRects[i].x();
                     int wy = m_windowRects[i].y();
                     int ww = m_windowRects[i].width();
                     int wh = m_windowRects[i].height();
                     int ex = ev->x();
                     int ey = ev->y();
-                    if (ex > wx && ex < wx + ww && ey > wy && ey < wy + wh) {
+                    if (ex > wx && ex < wx + ww && ey > wy && ey < wy + wh)
+                    {
                         m_selectAreaName = m_windowNames[i];
                         break;
                     }
                 }
-            } else {
+            }
+            else
+            {
                 // Make sure record area not too small.
-                m_recordWidth = m_recordWidth < RECORD_MIN_SIZE ?
-                            RECORD_MIN_SIZE : m_recordWidth;
-                m_recordHeight = m_recordHeight < RECORD_MIN_SIZE ?
-                            RECORD_MIN_SIZE : m_recordHeight;
+                m_recordWidth = m_recordWidth < RECORD_MIN_SIZE ? RECORD_MIN_SIZE : m_recordWidth;
+                m_recordHeight = m_recordHeight < RECORD_MIN_SIZE ? RECORD_MIN_SIZE : m_recordHeight;
 
-                if (m_recordX + m_recordWidth > m_backgroundRect.width()) {
+                if (m_recordX + m_recordWidth > m_backgroundRect.width())
+                {
                     m_recordX = m_backgroundRect.width() - m_recordWidth;
                 }
 
-                if (m_recordY + m_recordHeight > m_backgroundRect.height()) {
+                if (m_recordY + m_recordHeight > m_backgroundRect.height())
+                {
                     m_recordY = m_backgroundRect.height() - m_recordHeight;
                 }
             }
@@ -494,7 +603,8 @@ void MainWindow::mouseReleaseEvent(QMouseEvent *ev)
         needRepaint = true;
     }
 
-    if (needRepaint) {
+    if (needRepaint)
+    {
         update();
     }
 
@@ -511,31 +621,41 @@ void MainWindow::mouseMoveEvent(QMouseEvent *ev)
 {
     bool needRepaint = false;
 
-    if (!m_isShapesWidgetExist) {
-        if (m_recordWidth > 0 && m_recordHeight >0 && !m_needSaveScreenshot && this->isVisible()) {
+    if (!m_isShapesWidgetExist)
+    {
+        if (m_recordWidth > 0 && m_recordHeight > 0 && !m_needSaveScreenshot && this->isVisible())
+        {
             m_sizeTips->updateTips(QPoint(m_recordX, m_recordY),
-                                                         QString("%1X%2").arg(m_recordWidth).arg(m_recordHeight));
+                                   QString("%1X%2").arg(m_recordWidth).arg(m_recordHeight));
 
-            if (m_toolBar->isVisible()) {
+            if (m_toolBar->isVisible())
+            {
                 updateToolBarPos();
                 m_zoomIndicator->hide();
             }
         }
 
-        if (m_isFirstMove) {
-            if (!m_toolBar->isVisible() && !m_isFirstReleaseButton) {
+        if (m_isFirstMove)
+        {
+            if (!m_toolBar->isVisible() && !m_isFirstReleaseButton)
+            {
                 QPoint curPos = this->cursor().pos();
                 QPoint tmpPos;
-                if (curPos.x() + INDICATOR_WIDTH + CURSOR_WIDTH > m_backgroundRect.x()
-                        + m_backgroundRect.width()) {
-                      tmpPos.setX(curPos.x() - INDICATOR_WIDTH);
-                } else {
+                if (curPos.x() + INDICATOR_WIDTH + CURSOR_WIDTH > m_backgroundRect.x() + m_backgroundRect.width())
+                {
+                    tmpPos.setX(curPos.x() - INDICATOR_WIDTH);
+                }
+                else
+                {
                     tmpPos.setX(curPos.x() + CURSOR_WIDTH);
                 }
 
-                if (curPos.y() + INDICATOR_WIDTH > m_backgroundRect.y() + m_backgroundRect.height()) {
+                if (curPos.y() + INDICATOR_WIDTH > m_backgroundRect.y() + m_backgroundRect.height())
+                {
                     tmpPos.setY(curPos.y() - INDICATOR_WIDTH);
-                } else {
+                }
+                else
+                {
                     tmpPos.setY(curPos.y() + CURSOR_HEIGHT);
                 }
 
@@ -543,14 +663,19 @@ void MainWindow::mouseMoveEvent(QMouseEvent *ev)
                     std::max(tmpPos.x() - m_backgroundRect.x(), 0),
                     std::max(tmpPos.y() - m_backgroundRect.y(), 0)));
             }
-        } else {
+        }
+        else
+        {
             m_isFirstMove = true;
             needRepaint = true;
         }
 
-        if (m_isFirstPressButton) {
-            if (!m_isFirstReleaseButton) {
-                if (m_isPressButton && !m_isReleaseButton) {
+        if (m_isFirstPressButton)
+        {
+            if (!m_isFirstReleaseButton)
+            {
+                if (m_isPressButton && !m_isReleaseButton)
+                {
                     m_recordX = std::min(m_dragStartX, ev->x());
                     m_recordY = std::min(m_dragStartY, ev->y());
                     m_recordWidth = std::abs(m_dragStartX - ev->x());
@@ -558,34 +683,54 @@ void MainWindow::mouseMoveEvent(QMouseEvent *ev)
 
                     needRepaint = true;
                 }
-            } else if (m_isPressButton) {
-                if (m_mouseStatus != ShotMouseStatus::Wait && m_dragRecordX >= 0
-                && m_dragRecordY >= 0) {
-                    if (m_dragAction == ResizeDirection::Moving && m_moving) {
+            }
+            else if (m_isPressButton)
+            {
+                if (m_mouseStatus != ShotMouseStatus::Wait && m_dragRecordX >= 0 && m_dragRecordY >= 0)
+                {
+                    if (m_dragAction == ResizeDirection::Moving && m_moving)
+                    {
                         m_recordX = std::max(std::min(m_dragRecordX + ev->x() - m_dragStartX,
-                                                                                  m_backgroundRect.width() - m_recordWidth), 1);
+                                                      m_backgroundRect.width() - m_recordWidth),
+                                             1);
                         m_recordY = std::max(std::min(m_dragRecordY + ev->y() - m_dragStartY,
-                                                                                  m_backgroundRect.height() - m_recordHeight), 1);
-
-                    } else if (m_dragAction == ResizeDirection::TopLeft) {
+                                                      m_backgroundRect.height() - m_recordHeight),
+                                             1);
+                    }
+                    else if (m_dragAction == ResizeDirection::TopLeft)
+                    {
                         resizeDirection(ResizeDirection::Top, ev);
                         resizeDirection(ResizeDirection::Left, ev);
-                    } else if (m_dragAction == ResizeDirection::TopRight) {
+                    }
+                    else if (m_dragAction == ResizeDirection::TopRight)
+                    {
                         resizeDirection(ResizeDirection::Top, ev);
                         resizeDirection(ResizeDirection::Right, ev);
-                    } else if (m_dragAction == ResizeDirection::BottomLeft) {
+                    }
+                    else if (m_dragAction == ResizeDirection::BottomLeft)
+                    {
                         resizeDirection(ResizeDirection::Bottom, ev);
                         resizeDirection(ResizeDirection::Left, ev);
-                    } else if (m_dragAction == ResizeDirection::BottomRight) {
+                    }
+                    else if (m_dragAction == ResizeDirection::BottomRight)
+                    {
                         resizeDirection(ResizeDirection::Bottom, ev);
                         resizeDirection(ResizeDirection::Right, ev);
-                    } else if (m_dragAction == ResizeDirection::Top) {
+                    }
+                    else if (m_dragAction == ResizeDirection::Top)
+                    {
                         resizeDirection(ResizeDirection::Top, ev);
-                    } else if (m_dragAction == ResizeDirection::Bottom) {
+                    }
+                    else if (m_dragAction == ResizeDirection::Bottom)
+                    {
                         resizeDirection(ResizeDirection::Bottom, ev);
-                    } else if (m_dragAction == ResizeDirection::Left) {
+                    }
+                    else if (m_dragAction == ResizeDirection::Left)
+                    {
                         resizeDirection(ResizeDirection::Left, ev);
-                    } else if (m_dragAction == ResizeDirection::Right) {
+                    }
+                    else if (m_dragAction == ResizeDirection::Right)
+                    {
                         resizeDirection(ResizeDirection::Right, ev);
                     }
 
@@ -594,22 +739,28 @@ void MainWindow::mouseMoveEvent(QMouseEvent *ev)
             }
 
             updateCursor(ev);
-            int mousePosition =  getDirection(ev);
+            int mousePosition = getDirection(ev);
             bool drawPoint = mousePosition != ResizeDirection::Moving;
-            if (drawPoint != m_needDrawSelectedPoint) {
+            if (drawPoint != m_needDrawSelectedPoint)
+            {
                 m_needDrawSelectedPoint = drawPoint;
                 needRepaint = true;
             }
-        } else {
-            if (m_screenNum == 0) {
-                for (int i = 0; i < m_windowRects.length(); i++) {
+        }
+        else
+        {
+            if (m_screenNum == 0)
+            {
+                for (int i = 0; i < m_windowRects.length(); i++)
+                {
                     int wx = m_windowRects[i].x();
                     int wy = m_windowRects[i].y();
                     int ww = m_windowRects[i].width();
                     int wh = m_windowRects[i].height();
                     int ex = ev->x();
                     int ey = ev->y();
-                    if (ex > wx && ex < wx + ww && ey > wy && ey < wy + wh) {
+                    if (ex > wx && ex < wx + ww && ey > wy && ey < wy + wh)
+                    {
                         m_recordX = wx;
                         m_recordY = wy;
                         m_recordWidth = ww;
@@ -619,7 +770,9 @@ void MainWindow::mouseMoveEvent(QMouseEvent *ev)
                         break;
                     }
                 }
-            } else {
+            }
+            else
+            {
                 m_recordX = 0;
                 m_recordY = 0;
                 m_recordWidth = m_backgroundRect.width();
@@ -628,8 +781,10 @@ void MainWindow::mouseMoveEvent(QMouseEvent *ev)
             }
         }
 
-        if (m_isPressButton && m_isFirstPressButton) {
-            if (!m_isFirstDrag) {
+        if (m_isPressButton && m_isFirstPressButton)
+        {
+            if (!m_isFirstDrag)
+            {
                 m_isFirstDrag = true;
 
                 m_selectAreaName = tr("select-area");
@@ -637,7 +792,8 @@ void MainWindow::mouseMoveEvent(QMouseEvent *ev)
         }
     }
 
-    if (needRepaint) {
+    if (needRepaint)
+    {
         update();
     }
 
@@ -646,56 +802,58 @@ void MainWindow::mouseMoveEvent(QMouseEvent *ev)
 
 int MainWindow::getDirection(QEvent *event)
 {
-    QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
+    QMouseEvent *mouseEvent = static_cast<QMouseEvent *>(event);
 
     int cursorX = mouseEvent->x();
     int cursorY = mouseEvent->y();
     int effectiveSpacing = int(SPACING * devicePixelRatioF());
 
-    if (cursorX > m_recordX - effectiveSpacing
-            && cursorX < m_recordX + effectiveSpacing
-            && cursorY > m_recordY - effectiveSpacing
-            && cursorY < m_recordY + effectiveSpacing) {
+    if (cursorX > m_recordX - effectiveSpacing && cursorX < m_recordX + effectiveSpacing && cursorY > m_recordY - effectiveSpacing && cursorY < m_recordY + effectiveSpacing)
+    {
         // Top-Left corner.
         return ResizeDirection::TopLeft;
-    } else if (cursorX > m_recordX + m_recordWidth - effectiveSpacing
-               && cursorX < m_recordX + m_recordWidth + effectiveSpacing
-               && cursorY > m_recordY + m_recordHeight - effectiveSpacing
-               && cursorY < m_recordY + m_recordHeight + effectiveSpacing) {
+    }
+    else if (cursorX > m_recordX + m_recordWidth - effectiveSpacing && cursorX < m_recordX + m_recordWidth + effectiveSpacing && cursorY > m_recordY + m_recordHeight - effectiveSpacing && cursorY < m_recordY + m_recordHeight + effectiveSpacing)
+    {
         // Bottom-Right corner.
-        return  ResizeDirection::BottomRight;
-    } else if (cursorX > m_recordX + m_recordWidth - effectiveSpacing
-               && cursorX < m_recordX + m_recordWidth + effectiveSpacing
-               && cursorY > m_recordY - effectiveSpacing
-               && cursorY < m_recordY + effectiveSpacing) {
+        return ResizeDirection::BottomRight;
+    }
+    else if (cursorX > m_recordX + m_recordWidth - effectiveSpacing && cursorX < m_recordX + m_recordWidth + effectiveSpacing && cursorY > m_recordY - effectiveSpacing && cursorY < m_recordY + effectiveSpacing)
+    {
         // Top-Right corner.
-        return  ResizeDirection::TopRight;
-    } else if (cursorX > m_recordX - effectiveSpacing
-               && cursorX < m_recordX + effectiveSpacing
-               && cursorY > m_recordY + m_recordHeight - effectiveSpacing
-               && cursorY < m_recordY + m_recordHeight + effectiveSpacing) {
+        return ResizeDirection::TopRight;
+    }
+    else if (cursorX > m_recordX - effectiveSpacing && cursorX < m_recordX + effectiveSpacing && cursorY > m_recordY + m_recordHeight - effectiveSpacing && cursorY < m_recordY + m_recordHeight + effectiveSpacing)
+    {
         // Bottom-Left corner.
-        return  ResizeDirection::BottomLeft;
-    } else if (cursorX > m_recordX - effectiveSpacing
-               && cursorX < m_recordX + effectiveSpacing) {
+        return ResizeDirection::BottomLeft;
+    }
+    else if (cursorX > m_recordX - effectiveSpacing && cursorX < m_recordX + effectiveSpacing)
+    {
         // Left.
         return ResizeDirection::Left;
-    } else if (cursorX > m_recordX + m_recordWidth - effectiveSpacing
-               && cursorX < m_recordX + m_recordWidth + effectiveSpacing) {
+    }
+    else if (cursorX > m_recordX + m_recordWidth - effectiveSpacing && cursorX < m_recordX + m_recordWidth + effectiveSpacing)
+    {
         // Right.
-        return  ResizeDirection::Right;
-    } else if (cursorY > m_recordY - effectiveSpacing
-               && cursorY < m_recordY + effectiveSpacing) {
+        return ResizeDirection::Right;
+    }
+    else if (cursorY > m_recordY - effectiveSpacing && cursorY < m_recordY + effectiveSpacing)
+    {
         // Top.
         return ResizeDirection::Top;
-    } else if (cursorY > m_recordY + m_recordHeight - effectiveSpacing
-               && cursorY < m_recordY + m_recordHeight + effectiveSpacing) {
+    }
+    else if (cursorY > m_recordY + m_recordHeight - effectiveSpacing && cursorY < m_recordY + m_recordHeight + effectiveSpacing)
+    {
         // Bottom.
-        return  ResizeDirection::Bottom;
-    } else if (cursorX > m_recordX && cursorX < m_recordX + m_recordWidth
-               && cursorY > m_recordY && cursorY < m_recordY + m_recordHeight) {
+        return ResizeDirection::Bottom;
+    }
+    else if (cursorX > m_recordX && cursorX < m_recordX + m_recordWidth && cursorY > m_recordY && cursorY < m_recordY + m_recordHeight)
+    {
         return ResizeDirection::Moving;
-    } else {
+    }
+    else
+    {
         return ResizeDirection::Outting;
     }
 }
@@ -715,14 +873,18 @@ void MainWindow::paintEvent(QPaintEvent *event)
     painter.drawPixmap(backgroundRect, m_backgroundPixmap);
 
     // Draw background.
-    if (!m_isFirstMove) {
+    if (!m_isFirstMove)
+    {
         painter.setBrush(QBrush("#000000"));
         painter.setOpacity(0.5);
         painter.drawRect(backgroundRect);
-    } else if (m_recordWidth > 0 && m_recordHeight > 0 && !m_drawNothing) {
+    }
+    else if (m_recordWidth > 0 && m_recordHeight > 0 && !m_drawNothing)
+    {
         QRect frameRect = QRect(m_recordX + 1, m_recordY + 1, m_recordWidth - 2, m_recordHeight - 2);
         // Draw frame.
-        if (m_mouseStatus != ShotMouseStatus::Wait) {
+        if (m_mouseStatus != ShotMouseStatus::Wait)
+        {
             painter.setRenderHint(QPainter::Antialiasing, false);
             painter.setBrush(QBrush("#000000"));
             painter.setOpacity(0.2);
@@ -741,16 +903,17 @@ void MainWindow::paintEvent(QPaintEvent *event)
         }
 
         // Draw drag pint.
-        if (m_mouseStatus != ShotMouseStatus::Wait && m_needDrawSelectedPoint) {
+        if (m_mouseStatus != ShotMouseStatus::Wait && m_needDrawSelectedPoint)
+        {
             painter.setOpacity(1);
 
-            qreal margin =  qreal(RESIZEPOINT_WIDTH / 2);
+            qreal margin = qreal(RESIZEPOINT_WIDTH / 2);
             qreal paintX = frameRect.x() - margin;
             qreal paintY = frameRect.y() - margin;
             qreal paintWidth = frameRect.x() + frameRect.width() - margin;
             qreal paintHeight = frameRect.y() + frameRect.height() - margin;
-            qreal paintHalfWidth = frameRect.x() + frameRect.width()/2 - margin;
-            qreal paintHalfHeight = frameRect.y() + frameRect.height()/2 - margin;
+            qreal paintHalfWidth = frameRect.x() + frameRect.width() / 2 - margin;
+            qreal paintHalfHeight = frameRect.y() + frameRect.height() / 2 - margin;
             paintSelectedPoint(painter, QPointF(paintX, paintY), m_resizeBigPix);
             paintSelectedPoint(painter, QPointF(paintWidth, paintY), m_resizeBigPix);
             paintSelectedPoint(painter, QPointF(paintX, paintHeight), m_resizeBigPix);
@@ -803,60 +966,66 @@ void MainWindow::initShapeWidget(QString type)
 
 void MainWindow::updateCursor(QEvent *event)
 {
-    if (m_mouseStatus == ShotMouseStatus::Normal) {
-        QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
+    if (m_mouseStatus == ShotMouseStatus::Normal)
+    {
+        QMouseEvent *mouseEvent = static_cast<QMouseEvent *>(event);
 
         int cursorX = mouseEvent->x();
         int cursorY = mouseEvent->y();
         int effectiveSpacing = int(SPACING * devicePixelRatioF());
 
-        if (cursorX > m_recordX - effectiveSpacing
-                && cursorX < m_recordX + effectiveSpacing
-                && cursorY > m_recordY - effectiveSpacing
-                && cursorY < m_recordY + effectiveSpacing) {
+        if (cursorX > m_recordX - effectiveSpacing && cursorX < m_recordX + effectiveSpacing && cursorY > m_recordY - effectiveSpacing && cursorY < m_recordY + effectiveSpacing)
+        {
             // Top-Left corner.
             qApp->setOverrideCursor(Qt::SizeFDiagCursor);
-        } else if (cursorX > m_recordX + m_recordWidth - effectiveSpacing
-                   && cursorX < m_recordX + m_recordWidth + effectiveSpacing
-                   && cursorY > m_recordY + m_recordHeight - effectiveSpacing
-                   && cursorY < m_recordY + m_recordHeight + effectiveSpacing) {
+        }
+        else if (cursorX > m_recordX + m_recordWidth - effectiveSpacing && cursorX < m_recordX + m_recordWidth + effectiveSpacing && cursorY > m_recordY + m_recordHeight - effectiveSpacing && cursorY < m_recordY + m_recordHeight + effectiveSpacing)
+        {
             // Bottom-Right corner.
             qApp->setOverrideCursor(Qt::SizeFDiagCursor);
-        } else if (cursorX > m_recordX + m_recordWidth - effectiveSpacing
-                   && cursorX < m_recordX + m_recordWidth + effectiveSpacing
-                   && cursorY > m_recordY - effectiveSpacing
-                   && cursorY < m_recordY + effectiveSpacing) {
+        }
+        else if (cursorX > m_recordX + m_recordWidth - effectiveSpacing && cursorX < m_recordX + m_recordWidth + effectiveSpacing && cursorY > m_recordY - effectiveSpacing && cursorY < m_recordY + effectiveSpacing)
+        {
             // Top-Right corner.
             qApp->setOverrideCursor(Qt::SizeBDiagCursor);
-        } else if (cursorX > m_recordX - effectiveSpacing
-                   && cursorX < m_recordX + effectiveSpacing
-                   && cursorY > m_recordY + m_recordHeight - effectiveSpacing
-                   && cursorY < m_recordY + m_recordHeight + effectiveSpacing) {
+        }
+        else if (cursorX > m_recordX - effectiveSpacing && cursorX < m_recordX + effectiveSpacing && cursorY > m_recordY + m_recordHeight - effectiveSpacing && cursorY < m_recordY + m_recordHeight + effectiveSpacing)
+        {
             // Bottom-Left corner.
             qApp->setOverrideCursor(Qt::SizeBDiagCursor);
-        } else if (cursorX > m_recordX - effectiveSpacing
-                   && cursorX < m_recordX + effectiveSpacing) {
+        }
+        else if (cursorX > m_recordX - effectiveSpacing && cursorX < m_recordX + effectiveSpacing)
+        {
             // Left.
             qApp->setOverrideCursor(Qt::SizeHorCursor);
-        } else if (cursorX > m_recordX + m_recordWidth - effectiveSpacing
-                   && cursorX < m_recordX + m_recordWidth + effectiveSpacing) {
+        }
+        else if (cursorX > m_recordX + m_recordWidth - effectiveSpacing && cursorX < m_recordX + m_recordWidth + effectiveSpacing)
+        {
             // Right.
             qApp->setOverrideCursor(Qt::SizeHorCursor);
-        } else if (cursorY > m_recordY - effectiveSpacing
-                   && cursorY < m_recordY + effectiveSpacing) {
+        }
+        else if (cursorY > m_recordY - effectiveSpacing && cursorY < m_recordY + effectiveSpacing)
+        {
             // Top.
             qApp->setOverrideCursor(Qt::SizeVerCursor);
-        } else if (cursorY > m_recordY + m_recordHeight - effectiveSpacing
-                   && cursorY < m_recordY + m_recordHeight + effectiveSpacing) {
+        }
+        else if (cursorY > m_recordY + m_recordHeight - effectiveSpacing && cursorY < m_recordY + m_recordHeight + effectiveSpacing)
+        {
             // Bottom.
             qApp->setOverrideCursor(Qt::SizeVerCursor);
-        } else {
-            if (m_isPressButton) {
+        }
+        else
+        {
+            if (m_isPressButton)
+            {
                 qApp->setOverrideCursor(Qt::ClosedHandCursor);
-            } else if (cursorX >= m_recordX - effectiveSpacing && cursorX <= m_recordX + m_recordWidth + effectiveSpacing
-                       && cursorY >= m_recordY - effectiveSpacing && cursorY < m_recordY + m_recordHeight + effectiveSpacing) {
+            }
+            else if (cursorX >= m_recordX - effectiveSpacing && cursorX <= m_recordX + m_recordWidth + effectiveSpacing && cursorY >= m_recordY - effectiveSpacing && cursorY < m_recordY + m_recordHeight + effectiveSpacing)
+            {
                 qApp->setOverrideCursor(Qt::OpenHandCursor);
-            } else {
+            }
+            else
+            {
                 qApp->setOverrideCursor(Qt::ArrowCursor);
             }
         }
@@ -868,32 +1037,45 @@ void MainWindow::resizeDirection(ResizeDirection direction, QMouseEvent *e)
     int offsetX = e->x() - m_dragStartX;
     int offsetY = e->y() - m_dragStartY;
 
-    switch (direction) {
-    case ResizeDirection::Top: {
+    switch (direction)
+    {
+    case ResizeDirection::Top:
+    {
         m_recordY = std::max(std::min(m_dragRecordY + offsetY,
-                                      m_dragRecordY + m_dragRecordHeight - RECORD_MIN_SIZE), 1);
+                                      m_dragRecordY + m_dragRecordHeight - RECORD_MIN_SIZE),
+                             1);
         m_recordHeight = std::max(std::min(m_dragRecordHeight -
-                                           offsetY, m_backgroundRect.height()), RECORD_MIN_SIZE);
+                                               offsetY,
+                                           m_backgroundRect.height()),
+                                  RECORD_MIN_SIZE);
         break;
     };
-    case ResizeDirection::Bottom: {
+    case ResizeDirection::Bottom:
+    {
         m_recordHeight = std::max(std::min(m_dragRecordHeight + offsetY,
-                                           m_backgroundRect.height()), RECORD_MIN_SIZE);
+                                           m_backgroundRect.height()),
+                                  RECORD_MIN_SIZE);
         break;
     };
-    case ResizeDirection::Left: {
+    case ResizeDirection::Left:
+    {
         m_recordX = std::max(std::min(m_dragRecordX + offsetX,
-                                      m_dragRecordX + m_dragRecordWidth - RECORD_MIN_SIZE), 1);
+                                      m_dragRecordX + m_dragRecordWidth - RECORD_MIN_SIZE),
+                             1);
         m_recordWidth = std::max(std::min(m_dragRecordWidth - offsetX,
-                                          m_backgroundRect.width()), RECORD_MIN_SIZE);
+                                          m_backgroundRect.width()),
+                                 RECORD_MIN_SIZE);
         break;
     };
-    case ResizeDirection::Right: {
+    case ResizeDirection::Right:
+    {
         m_recordWidth = std::max(std::min(m_dragRecordWidth + offsetX,
-                                          m_backgroundRect.width()), RECORD_MIN_SIZE);
+                                          m_backgroundRect.width()),
+                                 RECORD_MIN_SIZE);
         break;
     };
-    default:break;
+    default:
+        break;
     }
 }
 
@@ -904,7 +1086,7 @@ void MainWindow::fullScreenshot()
     qApp->setOverrideCursor(setCursorShape("start"));
     initDBusInterface();
     this->setFocus();
-    m_configSettings =  ConfigSettings::instance();
+    m_configSettings = ConfigSettings::instance();
     installEventFilter(this);
 
     if (m_hotZoneInterface->isValid())
@@ -923,11 +1105,11 @@ void MainWindow::fullScreenshot()
     m_toolBar->hide();
 
     if (m_hotZoneInterface->isValid())
-        m_hotZoneInterface->asyncCall("EnableZoneDetected",  true);
+        m_hotZoneInterface->asyncCall("EnableZoneDetected", true);
 
     emit this->hideScreenshotUI();
-//    DDesktopServices::playSystemSoundEffect(DDesktopServices::SSE_Screenshot);
-//    using namespace utils;
+    //    DDesktopServices::playSystemSoundEffect(DDesktopServices::SSE_Screenshot);
+    //    using namespace utils;
 
     TempFile::instance()->setFullScreenPixmap(m_resultPixmap);
     const auto r = saveAction(m_resultPixmap);
@@ -936,7 +1118,8 @@ void MainWindow::fullScreenshot()
 
 void MainWindow::savePath(const QString &path)
 {
-    if (!QFileInfo(path).dir().exists()) {
+    if (!QFileInfo(path).dir().exists())
+    {
         exitApp();
     }
 
@@ -945,7 +1128,7 @@ void MainWindow::savePath(const QString &path)
     m_toolBar->specificedSavePath();
     m_specificedPath = path;
 
-    connect(m_toolBar, &ToolBar::saveSpecifiedPath, this, [=]{
+    connect(m_toolBar, &ToolBar::saveSpecifiedPath, this, [=] {
         emit releaseEvent();
         emit saveActionTriggered();
         m_needSaveScreenshot = true;
@@ -962,53 +1145,64 @@ void MainWindow::saveSpecificedPath(QString path)
 
     if (!QFileInfo(path).isDir() && !baseName.isEmpty())
     {
-        if (isValidFormat(suffix)) {
+        if (isValidFormat(suffix))
+        {
             savePath = path;
-        } else if (suffix.isEmpty()) {
+        }
+        else if (suffix.isEmpty())
+        {
             savePath = path + ".png";
-        } else {
+        }
+        else
+        {
             qWarning() << "Invalid image format! Screenshot will quit, suffix:" << suffix;
             exitApp();
         }
         qDebug() << "process savepath1:" << savePath;
-    } else {
-        if (QFileInfo(path).isDir() && !path.endsWith("/")) {
+    }
+    else
+    {
+        if (QFileInfo(path).isDir() && !path.endsWith("/"))
+        {
             path = path + "/";
         }
         qDebug() << "path isEmpty!";
 
         QDateTime currentDate;
-        QString currentTime =  currentDate.currentDateTime().
-                toString("yyyyMMddHHmmss");
-        if (m_selectAreaName.isEmpty()) {
+        QString currentTime = currentDate.currentDateTime().toString("yyyyMMddHHmmss");
+        if (m_selectAreaName.isEmpty())
+        {
             savePath = path + QString("%1_%2.png").arg(tr("DeepinScreenshot")).arg(currentTime);
-        } else {
-            savePath = path + QString("%1_%2_%3.png").arg(tr("DeepinScreenshot")).arg(
-                                                                                       m_selectAreaName).arg(currentTime);
+        }
+        else
+        {
+            savePath = path + QString("%1_%2_%3.png").arg(tr("DeepinScreenshot")).arg(m_selectAreaName).arg(currentTime);
         }
         qDebug() << "process savepath2: " << savePath;
     }
 
     if (m_hotZoneInterface->isValid())
-        m_hotZoneInterface->asyncCall("EnableZoneDetected",  true);
-//    using namespace utils;
+        m_hotZoneInterface->asyncCall("EnableZoneDetected", true);
+    //    using namespace utils;
     m_toolBar->setVisible(false);
     m_sizeTips->setVisible(false);
 
     shotCurrentImg();
     m_resultPixmap.save(savePath);
-//    DDesktopServices::playSystemSoundEffect(DDesktopServices::SSE_Screenshot);
+    //    DDesktopServices::playSystemSoundEffect(DDesktopServices::SSE_Screenshot);
 
     QStringList actions;
     actions << "_open" << tr("View");
     QVariantMap hints;
     QString fileDir = QUrl::fromLocalFile(QFileInfo(savePath).absoluteDir().absolutePath()).toString();
-    QString filePath =  QUrl::fromLocalFile(savePath).toString();
+    QString filePath = QUrl::fromLocalFile(savePath).toString();
     QString command;
-    if (QFile("/usr/bin/dde-file-manager").exists()) {
-        command = QString("/usr/bin/dde-file-manager,%1?selectUrl=%2"
-                          ).arg(fileDir).arg(filePath);
-    } else {
+    if (QFile("/usr/bin/dde-file-manager").exists())
+    {
+        command = QString("/usr/bin/dde-file-manager,%1?selectUrl=%2").arg(fileDir).arg(filePath);
+    }
+    else
+    {
         command = QString("xdg-open,%1").arg(filePath);
     }
 
@@ -1016,7 +1210,7 @@ void MainWindow::saveSpecificedPath(QString path)
 
     QString summary = QString(tr("Picture has been saved to %1")).arg(savePath);
 
-    m_notifyDBInterface->Notify("Deepin Screenshot", 0,  "deepin-screenshot", "",
+    m_notifyDBInterface->Notify("Deepin Screenshot", 0, "deepin-screenshot", "",
                                 summary, actions, hints, 0);
     exitApp();
 }
@@ -1065,14 +1259,17 @@ void MainWindow::topWindow()
     initSecondUI();
     initDBusInterface();
 
-    if (m_screenNum == 0) {
-        m_windowRects  = m_swUtil->windowsRect();
+    if (m_screenNum == 0)
+    {
+        m_windowRects = m_swUtil->windowsRect();
 
         m_recordX = m_windowRects[0].x();
         m_recordY = m_windowRects[0].y();
         m_recordWidth = m_windowRects[0].width();
         m_recordHeight = m_windowRects[0].height();
-    } else {
+    }
+    else
+    {
         m_recordX = m_backgroundRect.x();
         m_recordY = m_backgroundRect.y();
         m_recordWidth = m_backgroundRect.width();
@@ -1083,13 +1280,13 @@ void MainWindow::topWindow()
     emit this->hideScreenshotUI();
 
     const qreal ratio = this->devicePixelRatioF();
-    QRect target( m_recordX * ratio,
-                  m_recordY * ratio,
-                  m_recordWidth * ratio,
-                  m_recordHeight * ratio );
+    QRect target(m_recordX * ratio,
+                 m_recordY * ratio,
+                 m_recordWidth * ratio,
+                 m_recordHeight * ratio);
 
-//    using namespace utils;
-    QPixmap screenShotPix =  m_backgroundPixmap.copy(target);
+    //    using namespace utils;
+    QPixmap screenShotPix = m_backgroundPixmap.copy(target);
     qDebug() << "topWindow grabImage is null:" << m_backgroundPixmap.isNull()
              << QRect(m_recordX, m_recordY, m_recordWidth, m_recordHeight)
              << "\n"
@@ -1103,10 +1300,13 @@ void MainWindow::topWindow()
 
 void MainWindow::expressSaveScreenshot()
 {
-    if (m_specificedPath.isEmpty()) {
+    if (m_specificedPath.isEmpty())
+    {
         qDebug() << "specificedPath isEmpty!";
         saveScreenshot();
-    } else {
+    }
+    else
+    {
         qDebug() << "specificedPath isEmpty!XCVBN";
         m_toolBar->specificedSavePath();
         emit m_toolBar->saveSpecifiedPath();
@@ -1130,8 +1330,8 @@ QPixmap MainWindow::getPixmapofRect(const QRect &rect)
 {
     const qreal dpr = qApp->devicePixelRatio();
     return m_swUtil->primaryScreen()->grabWindow(
-                m_swUtil->rootWindowId(),
-               rect.x() / dpr, rect.y() / dpr, rect.width(), rect.height());
+        m_swUtil->rootWindowId(),
+        rect.x() / dpr, rect.y() / dpr, rect.width(), rect.height());
 }
 
 void MainWindow::initBackground()
@@ -1141,7 +1341,8 @@ void MainWindow::initBackground()
     TempFile::instance()->setFullScreenPixmap(m_backgroundPixmap);
 }
 
-void MainWindow::shotFullScreen() {
+void MainWindow::shotFullScreen()
+{
     m_resultPixmap = getPixmapofRect(m_backgroundRect);
 }
 
@@ -1159,9 +1360,10 @@ void MainWindow::shotCurrentImg()
     eventloop1.exec();
 
     qDebug() << "shotCurrentImg shotFullScreen";
-//    using namespace utils;
+    //    using namespace utils;
     shotFullScreen();
-    if (m_isShapesWidgetExist) {
+    if (m_isShapesWidgetExist)
+    {
         m_shapesWidget->hide();
     }
 
@@ -1169,10 +1371,10 @@ void MainWindow::shotCurrentImg()
     emit hideScreenshotUI();
 
     const qreal ratio = this->devicePixelRatioF();
-    QRect target( m_recordX * ratio,
-                  m_recordY * ratio,
-                  m_recordWidth * ratio,
-                  m_recordHeight * ratio );
+    QRect target(m_recordX * ratio,
+                 m_recordY * ratio,
+                 m_recordWidth * ratio,
+                 m_recordHeight * ratio);
 
     m_resultPixmap = m_resultPixmap.copy(target);
 }
@@ -1184,9 +1386,9 @@ void MainWindow::shotImgWidthEffect()
 
     update();
 
-//    QEventLoop eventloop;
-//    QTimer::singleShot(100, &eventloop, SLOT(quit()));
-//    eventloop.exec();
+    //    QEventLoop eventloop;
+    //    QTimer::singleShot(100, &eventloop, SLOT(quit()));
+    //    eventloop.exec();
 
     qDebug() << m_toolBar->isVisible() << m_sizeTips->isVisible();
     m_resultPixmap = getPixmapofRect(m_shapesWidget->geometry());
@@ -1199,9 +1401,9 @@ void MainWindow::saveScreenshot()
     emit releaseEvent();
     emit saveActionTriggered();
 
-//    DDesktopServices::playSystemSoundEffect(DDesktopServices::SSE_Screenshot);
+    //    DDesktopServices::playSystemSoundEffect(DDesktopServices::SSE_Screenshot);
     if (m_hotZoneInterface->isValid())
-        m_hotZoneInterface->asyncCall("EnableZoneDetected",  true);
+        m_hotZoneInterface->asyncCall("EnableZoneDetected", true);
     m_needSaveScreenshot = true;
 
     m_toolBar->setVisible(false);
@@ -1217,71 +1419,85 @@ bool MainWindow::saveAction(const QPixmap &pix)
 {
     emit releaseEvent();
 
-//    using namespace utils;
+    //    using namespace utils;
     QPixmap screenShotPix = pix;
     QDateTime currentDate;
-    QString currentTime =  currentDate.currentDateTime().
-            toString("yyyyMMddHHmmss");
+    QString currentTime = currentDate.currentDateTime().toString("yyyyMMddHHmmss");
     m_saveFileName = "";
 
     QStandardPaths::StandardLocation saveOption = QStandardPaths::TempLocation;
     bool copyToClipboard = false;
 
-    if (ConfigSettings::instance()->hasTemporarySaveAction()) {
+    if (ConfigSettings::instance()->hasTemporarySaveAction())
+    {
         m_saveIndex = ConfigSettings::instance()->getAndResetTemporarySaveAction();
-    } else {
+    }
+    else
+    {
         m_saveIndex = ConfigSettings::instance()->value("save", "save_op").toInt();
     }
-    switch (m_saveIndex) {
-    case 0: {
+    switch (m_saveIndex)
+    {
+    case 0:
+    {
         saveOption = QStandardPaths::DesktopLocation;
-        ConfigSettings::instance()->setValue("common", "default_savepath", QStandardPaths::writableLocation(
-                                                 QStandardPaths::DesktopLocation));
+        ConfigSettings::instance()->setValue("common", "default_savepath", QStandardPaths::writableLocation(QStandardPaths::DesktopLocation));
         break;
     }
-    case 1: {
+    case 1:
+    {
         QString defaultSaveDir = ConfigSettings::instance()->value("common", "default_savepath").toString();
-        if (defaultSaveDir.isEmpty()) {
+        if (defaultSaveDir.isEmpty())
+        {
             saveOption = QStandardPaths::DesktopLocation;
-        } else if (defaultSaveDir == "clipboard") {
+        }
+        else if (defaultSaveDir == "clipboard")
+        {
             copyToClipboard = true;
             m_saveIndex = 3;
-        } else {
-            if (m_selectAreaName.isEmpty()) {
-                m_saveFileName = QString("%1/%2_%3.png").arg(defaultSaveDir).arg(tr(
-                                                                                     "DeepinScreenshot")).arg(currentTime);
-            } else {
-                m_saveFileName = QString("%1/%2_%3_%4.png").arg(defaultSaveDir).arg(tr(
-                                                                                        "DeepinScreenshot")).arg(m_selectAreaName).arg(currentTime);
+        }
+        else
+        {
+            if (m_selectAreaName.isEmpty())
+            {
+                m_saveFileName = QString("%1/%2_%3.png").arg(defaultSaveDir).arg(tr("DeepinScreenshot")).arg(currentTime);
+            }
+            else
+            {
+                m_saveFileName = QString("%1/%2_%3_%4.png").arg(defaultSaveDir).arg(tr("DeepinScreenshot")).arg(m_selectAreaName).arg(currentTime);
             }
         }
         break;
     }
-    case 2: {
+    case 2:
+    {
         this->hide();
         this->releaseKeyboard();
         QFileDialog fileDialog;
-        QString  lastFileName;
-        if (m_selectAreaName.isEmpty()) {
-            lastFileName = QString("%1/%2_%3.png").arg(QStandardPaths::writableLocation(
-                                        QStandardPaths::PicturesLocation)).arg(tr("DeepinScreenshot")).arg(currentTime);
-        } else {
-            lastFileName = QString("%1/%2_%3_%4.png").arg(QStandardPaths::writableLocation(
-                                         QStandardPaths::PicturesLocation)).arg(tr("DeepinScreenshot")
-                                                                                                     ).arg(m_selectAreaName).arg(currentTime);
+        QString lastFileName;
+        if (m_selectAreaName.isEmpty())
+        {
+            lastFileName = QString("%1/%2_%3.png").arg(QStandardPaths::writableLocation(QStandardPaths::PicturesLocation)).arg(tr("DeepinScreenshot")).arg(currentTime);
+        }
+        else
+        {
+            lastFileName = QString("%1/%2_%3_%4.png").arg(QStandardPaths::writableLocation(QStandardPaths::PicturesLocation)).arg(tr("DeepinScreenshot")).arg(m_selectAreaName).arg(currentTime);
         }
 
-        m_saveFileName =  fileDialog.getSaveFileName(this, "Save",  lastFileName,
-                                                     tr("PNG (*.png);;JPEG (*.jpg *.jpeg);; BMP (*.bmp);; PGM (*.pgm);;"
-                                                        "XBM (*.xbm);;XPM(*.xpm)"));
+        m_saveFileName = fileDialog.getSaveFileName(this, "Save", lastFileName,
+                                                    tr("PNG (*.png);;JPEG (*.jpg *.jpeg);; BMP (*.bmp);; PGM (*.pgm);;"
+                                                       "XBM (*.xbm);;XPM(*.xpm)"));
 
         if (m_saveFileName.isEmpty() || QFileInfo(m_saveFileName).isDir())
             return false;
 
         QString fileSuffix = QFileInfo(m_saveFileName).completeSuffix();
-        if (fileSuffix.isEmpty()) {
+        if (fileSuffix.isEmpty())
+        {
             m_saveFileName = m_saveFileName + ".png";
-        } else if ( !isValidFormat(fileSuffix)) {
+        }
+        else if (!isValidFormat(fileSuffix))
+        {
             qWarning() << "The fileName has invalid suffix!" << fileSuffix << m_saveFileName;
             return false;
         }
@@ -1290,25 +1506,33 @@ bool MainWindow::saveAction(const QPixmap &pix)
                                              QFileInfo(m_saveFileName).dir().absolutePath());
         break;
     }
-    case 3: {
+    case 3:
+    {
         copyToClipboard = true;
-        ConfigSettings::instance()->setValue("common", "default_savepath",   "clipboard");
+        ConfigSettings::instance()->setValue("common", "default_savepath", "clipboard");
         break;
     }
-    case 4: {
+    case 4:
+    {
         copyToClipboard = true;
         QString defaultSaveDir = ConfigSettings::instance()->value("common", "default_savepath").toString();
-        if (defaultSaveDir.isEmpty()) {
+        if (defaultSaveDir.isEmpty())
+        {
             saveOption = QStandardPaths::DesktopLocation;
-        } else if (defaultSaveDir == "clipboard") {
+        }
+        else if (defaultSaveDir == "clipboard")
+        {
             m_saveIndex = 3;
-        } else  {
-            if (m_selectAreaName.isEmpty()) {
-                m_saveFileName = QString("%1/%2_%3.png").arg(defaultSaveDir).arg(tr(
-                                                                                     "DeepinScreenshot")).arg(currentTime);
-            } else {
-                m_saveFileName = QString("%1/%2_%3_%4.png").arg(defaultSaveDir).arg(tr(
-                                                                                        "DeepinScreenshot")).arg(m_selectAreaName).arg(currentTime);
+        }
+        else
+        {
+            if (m_selectAreaName.isEmpty())
+            {
+                m_saveFileName = QString("%1/%2_%3.png").arg(defaultSaveDir).arg(tr("DeepinScreenshot")).arg(currentTime);
+            }
+            else
+            {
+                m_saveFileName = QString("%1/%2_%3_%4.png").arg(defaultSaveDir).arg(tr("DeepinScreenshot")).arg(m_selectAreaName).arg(currentTime);
             }
         }
         break;
@@ -1318,40 +1542,54 @@ bool MainWindow::saveAction(const QPixmap &pix)
     }
 
     int toolBarSaveQuality = std::min(ConfigSettings::instance()->value("save",
-                                                            "save_quality").toInt(), 100);
+                                                                        "save_quality")
+                                          .toInt(),
+                                      100);
 
-    if (toolBarSaveQuality != 100) {
-       qreal saveQuality = qreal(toolBarSaveQuality)*5/1000 + 0.5;
+    if (toolBarSaveQuality != 100)
+    {
+        qreal saveQuality = qreal(toolBarSaveQuality) * 5 / 1000 + 0.5;
 
-       int pixWidth = screenShotPix.width();
-       int pixHeight = screenShotPix.height();
-        screenShotPix = screenShotPix.scaled(pixWidth*saveQuality, pixHeight*saveQuality,
-                                                                             Qt::KeepAspectRatio, Qt::FastTransformation);
-        screenShotPix = screenShotPix.scaled(pixWidth,  pixHeight,
-                                                                            Qt::KeepAspectRatio, Qt::FastTransformation);
+        int pixWidth = screenShotPix.width();
+        int pixHeight = screenShotPix.height();
+        screenShotPix = screenShotPix.scaled(pixWidth * saveQuality, pixHeight * saveQuality,
+                                             Qt::KeepAspectRatio, Qt::FastTransformation);
+        screenShotPix = screenShotPix.scaled(pixWidth, pixHeight,
+                                             Qt::KeepAspectRatio, Qt::FastTransformation);
     }
 
-    if (m_saveIndex == 2 && m_saveFileName.isEmpty()) {
+    if (m_saveIndex == 2 && m_saveFileName.isEmpty())
+    {
         return false;
-    } else if (m_saveIndex == 2 || !m_saveFileName.isEmpty()) {
-        if (!screenShotPix.save(m_saveFileName,  QFileInfo(m_saveFileName).suffix().toLocal8Bit()))
+    }
+    else if (m_saveIndex == 2 || !m_saveFileName.isEmpty())
+    {
+        if (!screenShotPix.save(m_saveFileName, QFileInfo(m_saveFileName).suffix().toLocal8Bit()))
             return false;
-    } else if (saveOption != QStandardPaths::TempLocation && m_saveFileName.isEmpty()) {
-        if (m_selectAreaName.isEmpty()) {
-            m_saveFileName = QString("%1/%2_%3.png").arg(QStandardPaths::writableLocation(
-                             saveOption)).arg(tr("DeepinScreenshot")).arg(currentTime);
-        } else {
-            m_saveFileName = QString("%1/%2_%3_%4.png").arg(QStandardPaths::writableLocation(
-                             saveOption)).arg(tr("DeepinScreenshot")).arg(m_selectAreaName).arg(currentTime);
+    }
+    else if (saveOption != QStandardPaths::TempLocation && m_saveFileName.isEmpty())
+    {
+        if (m_selectAreaName.isEmpty())
+        {
+            m_saveFileName = QString("%1/%2_%3.png").arg(QStandardPaths::writableLocation(saveOption)).arg(tr("DeepinScreenshot")).arg(currentTime);
         }
-        if (!screenShotPix.save(m_saveFileName,  "PNG"))
+        else
+        {
+            m_saveFileName = QString("%1/%2_%3_%4.png").arg(QStandardPaths::writableLocation(saveOption)).arg(tr("DeepinScreenshot")).arg(m_selectAreaName).arg(currentTime);
+        }
+        if (!screenShotPix.save(m_saveFileName, "PNG"))
             return false;
     }
 
-    if (copyToClipboard) {
-        Q_ASSERT(!screenShotPix.isNull());
-        QClipboard* cb = qApp->clipboard();
-        cb->setPixmap(screenShotPix, QClipboard::Selection);
+    if (copyToClipboard)
+    {
+        m_saveFileName = QString("/tmp/deepin-screenshot.png");
+        if (!screenShotPix.save(m_saveFileName, QFileInfo(m_saveFileName).suffix().toLocal8Bit()))
+            return false;
+        if (system("xclip -selection clipboard -t image/png -i /tmp/deepin-screenshot.png"))
+            return false;
+        if (system("rm /tmp/deepin-screenshot.png"))
+            return false;
     }
 
     return true;
@@ -1365,19 +1603,21 @@ void MainWindow::sendNotify(int saveIndex, QString saveFilePath, const bool succ
         const auto tips = tr("Save failed. Please save it in your home directory.");
         m_notifyDBInterface->Notify("Deepin Screenshot", 0, "deepin-screenshot", QString(), tips, QStringList(), QVariantMap(), 0);
 
-	exit(0);
+        exit(0);
     }
 
     QStringList actions;
     actions << "_open" << tr("View");
     QVariantMap hints;
     QString fileDir = QUrl::fromLocalFile(QFileInfo(saveFilePath).absoluteDir().absolutePath()).toString();
-    QString filePath =  QUrl::fromLocalFile(saveFilePath).toString();
+    QString filePath = QUrl::fromLocalFile(saveFilePath).toString();
     QString command;
-    if (QFile("/usr/bin/dde-file-manager").exists()) {
-        command = QString("/usr/bin/dde-file-manager,%1?selectUrl=%2"
-                          ).arg(fileDir).arg(filePath);
-    } else {
+    if (QFile("/usr/bin/dde-file-manager").exists())
+    {
+        command = QString("/usr/bin/dde-file-manager,%1?selectUrl=%2").arg(fileDir).arg(filePath);
+    }
+    else
+    {
         command = QString("xdg-open,%1").arg(filePath);
     }
 
@@ -1386,25 +1626,30 @@ void MainWindow::sendNotify(int saveIndex, QString saveFilePath, const bool succ
     qDebug() << "saveFilePath:" << saveFilePath;
 
     QString summary;
-    if (saveIndex == 3) {
+    if (saveIndex == 3)
+    {
         summary = QString(tr("Picture has been saved to clipboard"));
-    } else {
+    }
+    else
+    {
         summary = QString(tr("Picture has been saved to %1")).arg(saveFilePath);
     }
 
-    if (saveIndex == 3 && !m_noNotify) {
+    if (saveIndex == 3 && !m_noNotify)
+    {
         QVariantMap emptyMap;
-        m_notifyDBInterface->Notify("Deepin Screenshot", 0,  "deepin-screenshot", "",
-                                    summary,  QStringList(), emptyMap, 0);
-    }  else if ( !m_noNotify &&  !(m_saveIndex == 2 && m_saveFileName.isEmpty())) {
-        m_notifyDBInterface->Notify("Deepin Screenshot", 0,  "deepin-screenshot", "",
+        m_notifyDBInterface->Notify("Deepin Screenshot", 0, "deepin-screenshot", "",
+                                    summary, QStringList(), emptyMap, 0);
+    }
+    else if (!m_noNotify && !(m_saveIndex == 2 && m_saveFileName.isEmpty()))
+    {
+        m_notifyDBInterface->Notify("Deepin Screenshot", 0, "deepin-screenshot", "",
                                     summary, actions, hints, 0);
     }
 
-    QTimer::singleShot(2, [=]{
+    QTimer::singleShot(2, [=] {
         exitApp();
     });
-
 }
 
 void MainWindow::reloadImage(QString effect)
@@ -1419,17 +1664,22 @@ void MainWindow::reloadImage(QString effect)
 
     TempFile *tempFile = TempFile::instance();
 
-    if (effect == "blur") {
-        if (!tmpImg.isNull()) {
-            tmpImg = tmpImg.scaled(imgWidth/radius, imgHeight/radius,
+    if (effect == "blur")
+    {
+        if (!tmpImg.isNull())
+        {
+            tmpImg = tmpImg.scaled(imgWidth / radius, imgHeight / radius,
                                    Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
             tmpImg = tmpImg.scaled(imgWidth, imgHeight, Qt::IgnoreAspectRatio,
                                    Qt::SmoothTransformation);
             tempFile->setBlurPixmap(tmpImg);
         }
-    } else {
-        if (!tmpImg.isNull()) {
-            tmpImg = tmpImg.scaled(imgWidth/radius, imgHeight/radius,
+    }
+    else
+    {
+        if (!tmpImg.isNull())
+        {
+            tmpImg = tmpImg.scaled(imgWidth / radius, imgHeight / radius,
                                    Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
             tmpImg = tmpImg.scaled(imgWidth, imgHeight);
             tempFile->setMosaicPixmap(tmpImg);
@@ -1440,14 +1690,14 @@ void MainWindow::reloadImage(QString effect)
 void MainWindow::onViewShortcut()
 {
     QRect rect = window()->geometry();
-    QPoint pos(rect.x() + rect.width()/2, rect.y() + rect.height()/2);
+    QPoint pos(rect.x() + rect.width() / 2, rect.y() + rect.height() / 2);
     Shortcut sc;
     QStringList shortcutString;
     QString param1 = "-j=" + sc.toStr();
     QString param2 = "-p=" + QString::number(pos.x()) + "," + QString::number(pos.y());
     shortcutString << "-b" << param1 << param2;
 
-    QProcess* shortcutViewProc = new QProcess(this);
+    QProcess *shortcutViewProc = new QProcess(this);
     shortcutViewProc->startDetached("killall deepin-shortcut-viewer");
     shortcutViewProc->startDetached("deepin-shortcut-viewer", shortcutString);
 
@@ -1459,10 +1709,13 @@ void MainWindow::onHelp()
     QDBusInterface iface("com.deepin.Manual.Open",
                          "/com/deepin/Manual/Open",
                          "com.deepin.Manual.Open");
-    if (iface.isValid()) {
+    if (iface.isValid())
+    {
         iface.call("ShowManual", "deepin-screenshot");
         exitApp();
-    } else {
+    }
+    else
+    {
         qWarning() << "manual service not avilable, cannot open manual";
     }
 }
@@ -1472,7 +1725,7 @@ void MainWindow::exitApp()
     if (m_interfaceExist && nullptr != m_hotZoneInterface)
     {
         if (m_hotZoneInterface->isValid())
-            m_hotZoneInterface->asyncCall("EnableZoneDetected",  true);
+            m_hotZoneInterface->asyncCall("EnableZoneDetected", true);
     }
     qApp->quit();
 }
@@ -1483,14 +1736,18 @@ void MainWindow::updateToolBarPos()
     toolbarPoint = QPoint(m_recordX + m_recordWidth - m_toolBar->width(),
                           std::max(m_recordY + m_recordHeight + TOOLBAR_Y_SPACING, 0));
 
-    if (m_toolBar->width() > m_recordX + m_recordWidth) {
+    if (m_toolBar->width() > m_recordX + m_recordWidth)
+    {
         toolbarPoint.setX(m_recordX + 8);
     }
-    if (toolbarPoint.y()>= m_backgroundRect.y() + m_backgroundRect.height()
-            - m_toolBar->height() - 28) {
-        if (m_recordY > 28*2 + 10) {
+    if (toolbarPoint.y() >= m_backgroundRect.y() + m_backgroundRect.height() - m_toolBar->height() - 28)
+    {
+        if (m_recordY > 28 * 2 + 10)
+        {
             toolbarPoint.setY(m_recordY - m_toolBar->height() - TOOLBAR_Y_SPACING);
-        } else {
+        }
+        else
+        {
             toolbarPoint.setY(m_recordY + TOOLBAR_Y_SPACING);
         }
     }

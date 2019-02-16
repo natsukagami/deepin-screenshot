@@ -10,8 +10,14 @@
             },
             "includePath": [
                 "${workspaceFolder}",
-                "/usr/include/qt4/QtGui",
-                "/usr/include/qt/QtWidgets"
+                "/usr/include/qt",
+                "/usr/include/qt/QtWidgets",
+                "/usr/include/qt/QtGui",
+                "/usr/include/qt/QtCore",
+                "/usr/include/libdtk-2.0.9/DWidget",
+                "/usr/include/qt/QtDBus",
+                "/usr/include/libdtk-2.0.9/DCore",
+                "/usr/include/libdtk-2.0.9/DWm"
             ],
             "defines": [],
             "compilerPath": "/bin/clang",
